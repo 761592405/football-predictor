@@ -1,0 +1,12 @@
+# Python 缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境文件夹（如果你以后用了 venv）
+venv/
+env/
+
+# 操作系统生成的文件
+.DS_Store
+Thumbs.db
