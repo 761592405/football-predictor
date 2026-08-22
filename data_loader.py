@@ -1,34 +1,41 @@
-import请求
-导入json
+import pandas as pd
+import os
 
-def load_football_data():
-    """
-从 football-data.org 获取免费的英超历史数据
-    """
-    # 这是一个公开的API端点，获取2023-2024赛季英超数据
-    url = "https://api.football-data.org/v4/competitions/PL/matches"
+def load_matches(filepath="matches.csv"):
+    """加载历史比赛数据"""
+    if not os.path.exists(filepath):
+        print(f"❌ 找不到文件: {filepath}")
+        return None
     
-headers = {
-        # 注意：这是演示用的Token，如果失效你需要去官网申请一个免费的
-        'X-Auth-Token': 'YOUR_API_TOKEN_HERE' 
-    }
-    
-    print("正在连接 API 获取数据...")
-    
-    try:
-        response = requests.get(url, headers=headers)
-        如果 response.status_code == 200:
-            data = response.json()
-            print(f"成功获取 {len(data.get('matches', []))} 场比赛数据！")
-            return data['matches']
-        else:
-            print(f"获取失败，状态码: {response.status_code}")
-            return []
-    except Exception as e:
-        print(f"发生错误: {e}")
-        return []
+    df = pd.read_csv(filepath)
+    print(f"✅ 成功加载 {len(df)} 场比赛数据")
+    return df
 
+def get_team_stats(df, team_name):
+    """获取某支球队的历史统计数据"""
+    # 主队身份的比赛
+    home_matches = df[df['home_team'] == team_name]
+    # 客队身份的比赛
+    away_matches = df[df['away_team'] == team_name]
+    
+    # 主队胜率
+    home_wins = len(home_matches[home_matches['home_goals'] > home_matches['away_goals']])
+    home_total = len(home_matches)
+    
+    # 客队胜率
+    away_wins = len(away_matches[away_matches['away_goals'] > away_matches['home_goals']])
+    away_total = len(away_matches)
+    
+    print(f"\n📊 {team_name} 数据统计:")
+    print(f"  主场: {home_total}场 | 胜{home_wins}场 | 胜率 {home_wins/home_total*100:.1f}%" if home_total else "  主场: 无数据")
+    print(f"  客场: {away_total}场 | 胜{away_wins}场 | 胜率 {away_wins/away_total*100:.1f}%" if away_total else "  客场: 无数据")
+    
+    return df
+
+# 测试代码
 if __name__ == "__main__":
-    matches = load_football_data()
-    如果匹配：
-        print("第一场比赛示例:", matches[0]['homeTeam']['name'], "vs", matches[0]['awayTeam']['name'])
+    data = load_matches()
+    if data is not None:
+        print(data.head())  # 打印前5行
+        get_team_stats(data, "Manchester United")
+        get_team_stats(data, "Chelsea")
